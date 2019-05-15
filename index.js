@@ -8,7 +8,7 @@ const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 // TODO: child processes with python
 //linking static files
-app.use(express.static(path.join(__dirname,'client','scripts')))
+app.use(express.static(path.resolve(__dirname,'client')))
 //webpage routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname,'client','index.html'))
