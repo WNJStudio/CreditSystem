@@ -6,6 +6,8 @@ const app = express()
 const http = require('http').createServer(app)
 //socket module
 const io = require('socket.io')(http)
+//axios
+const axios = require('axios')
 //net for crawling
 const net = require('net')
 const HOST = '119.96.201.28'
@@ -76,6 +78,30 @@ const stopCrawler = () => {
     console.log('Crawler not running')
   }
 }
+// data
+//https://webconf.douyucdn.cn/resource/common/prop_gift_list/prop_gift_config.json
+//https://www.douyu.com/betard/4340108
+//https://webconf.douyucdn.cn/resource/common/gift/gift_template/20003.json
+let rid
+let noble_info = {}
+const cleanNoble = data => {
+  Object.entries(data).forEach(e => noble_info[e[0]] = `https://res.douyucdn.cn/resource/${e[1].symbol.web_symbol_pic1}`)
+}
+let gift_template = {}
+const cleanGtemp = data => {
+  Object.values(data).forEach(e => gift_template[e.id] = {
+    icon: e.pc_full_icon,
+    name: e.name,
+    price: e.pc
+  })
+}
+const cleanGifts = data => {
+  Object.entries(data).forEach(e => gift_template[e[0]] = {
+    icon: e[1].pc_full_icon,
+    name: e[1].name,
+    price: e[1].pc
+  })
+}
 //linking static files
 app.use(express.static(path.resolve(__dirname, 'client')))
 //webpage routing
@@ -87,6 +113,22 @@ io.on('connection', socket => {
   console.log('a user connected')
   socket.on('run', roomid => {
     startCrawler(roomid)
+    rid = roomid
+    axios.get(`https://www.douyu.com/betard/${roomid}`)
+      .then(res => {
+        cleanNoble(res.data.room.nobleConfig)
+        io.emit('data', noble_info)
+        axios.get(`https://webconf.douyucdn.cn/resource/common/gift/gift_template/${res.data.room.giftTempId}.json`)
+          .then(gg => {
+            cleanGtemp(JSON.parse(gg.data.match(/(?<=DYConfigCallback\()(.*)(?=\))/g)[0]).data)
+            axios.get('https://webconf.douyucdn.cn/resource/common/prop_gift_list/prop_gift_config.json')
+              .then(res => {
+                cleanGifts(JSON.parse(res.data.match(/(?<=DYConfigCallback\()(.*)(?=\))/g)[0]).data)
+                io.emit('data', gift_template)
+              })
+          })
+      }).catch(err => console.error(err))
+
   })
   socket.on('stop', () => stopCrawler())
 })
