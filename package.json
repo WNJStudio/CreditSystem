@@ -1,23 +1,27 @@
 {
   "name": "credit-system",
   "version": "0.0.3",
-  "author":"WNJStudio",
+  "author": "WNJStudio",
   "description": "credit system",
-  "keywords":["credit","streaming"],
-  "repository":{
-    "type":"git",
-    "url":"https://github.com/WNJStudio/CreditSystem.git"
+  "keywords": [
+    "credit",
+    "streaming"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WNJStudio/CreditSystem.git"
   },
-  "license":"MIT",
-  "bugs":{
-    "url":"https://github.com/WNJStudio/CreditSystem/issues"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/WNJStudio/CreditSystem/issues"
   },
   "homepage": "https://github.com/WNJStudio/CreditSystem#readme",
-  "scripts":{
-    "start":"node index.js"
+  "scripts": {
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.16.4",
     "socket.io": "^2.2.0"
-  }
+  },
+  "devDependencies": {}
 }

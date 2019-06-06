@@ -1,9 +1,11 @@
 const socket = io()
-function run(){
-  socket.emit('run')
+
+function run(rid) {
+  socket.emit('run', rid)
 }
-function stop(){
+
+function stop() {
   socket.emit('stop')
 }
 
-socket.on('data',data=>console.log(data))
+socket.on('data', data => console.log(data))

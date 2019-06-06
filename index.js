@@ -36,8 +36,8 @@ const send = (socket, payload) => {
   socket.write(data)
 }
 //Data handling
-const accepted = ['uenter','chatmsg','dgb']
-const reject = ['frank','lgspeacsite','rri','fswrank','loginres', 'noble_num_info', 'keeplive', 'anbc', 'lgpdtmsg', 'lucky_active', 'qausrespond','rnewbc','synexp']
+const accepted = ['uenter', 'chatmsg', 'dgb']
+const reject = ['frank', 'lgspeacsite', 'rri', 'fswrank', 'loginres', 'noble_num_info', 'keeplive', 'anbc', 'lgpdtmsg', 'lucky_active', 'qausrespond', 'rnewbc', 'synexp']
 let crawler
 let keeplive
 const startCrawler = roomid => {
@@ -85,8 +85,8 @@ app.get('*', (req, res) => {
 //socket events routing
 io.on('connection', socket => {
   console.log('a user connected')
-  socket.on('run', () => {
-    startCrawler(4340108)
+  socket.on('run', roomid => {
+    startCrawler(roomid)
   })
   socket.on('stop', () => stopCrawler())
 })
