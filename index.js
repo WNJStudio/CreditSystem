@@ -8,6 +8,13 @@ const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 //axios
 const axios = require('axios')
+//mongodb
+const MongoClient = require('mongodb').MongoClient
+const dbConnString = 'mongodb://localhost:27017/credits'
+const dbAction = action =>MongoClient.connect(url,{useNewUrlParser:true},(err,db)=>{
+  if(err)throw err
+  action(db)
+})
 //net for crawling
 const net = require('net')
 const HOST = '119.96.201.28'
@@ -39,9 +46,24 @@ const send = (socket, payload) => {
 }
 //Data handling
 const accepted = ['uenter', 'chatmsg', 'dgb']
-const reject = ['frank', 'lgspeacsite', 'rri', 'fswrank', 'loginres', 'noble_num_info', 'keeplive', 'anbc', 'lgpdtmsg', 'lucky_active', 'qausrespond', 'rnewbc', 'synexp']
+const reject = ['ssd','ranklist','frank', 'lgspeacsite', 'rri', 'fswrank', 'loginres', 'noble_num_info', 'keeplive', 'anbc', 'lgpdtmsg', 'lucky_active', 'qausrespond', 'rnewbc', 'synexp']
 let crawler
 let keeplive
+const processData = data =>{
+  if(data['type']=='chatmsg'){
+    io.emit('chat',data)
+  }else if (data['type']=='dgb') {
+    io.emit('gift',data)
+  }else if(data['type']=='uenter'){
+    let fanLv = data['fl']
+    let nobleLv = data['nl']
+    let level = data['level']
+    if(fanLv!=undefined||nobleLv!=undefined||level>=20)
+      io.emit('welcome',data)
+  }else{
+    io.emit('data',data)
+  }
+}
 const startCrawler = roomid => {
   if (crawler) {
     console.log('Crawler already running')
@@ -64,8 +86,9 @@ const startCrawler = roomid => {
     })), 50000)
     crawler.on('data', data => {
       data = msgToData(data.toString('utf-8', 12))
-      if (!reject.includes(data['type']))
-        io.emit('data', data)
+      if (!reject.includes(data['type'])){
+        processData(data)
+      }
     })
   }
 }
@@ -117,14 +140,14 @@ io.on('connection', socket => {
     axios.get(`https://www.douyu.com/betard/${roomid}`)
       .then(res => {
         cleanNoble(res.data.room.nobleConfig)
-        io.emit('data', noble_info)
+        io.emit('nobleconfig', noble_info)
         axios.get(`https://webconf.douyucdn.cn/resource/common/gift/gift_template/${res.data.room.giftTempId}.json`)
           .then(gg => {
             cleanGtemp(JSON.parse(gg.data.match(/(?<=DYConfigCallback\()(.*)(?=\))/g)[0]).data)
             axios.get('https://webconf.douyucdn.cn/resource/common/prop_gift_list/prop_gift_config.json')
               .then(res => {
                 cleanGifts(JSON.parse(res.data.match(/(?<=DYConfigCallback\()(.*)(?=\))/g)[0]).data)
-                io.emit('data', gift_template)
+                io.emit('giftconfig', gift_template)
               })
           })
       }).catch(err => console.error(err))
